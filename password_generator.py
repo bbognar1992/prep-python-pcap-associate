@@ -4,7 +4,7 @@ def generate_pw(
     import random
     letters = "".join([chr(c) for c in range(97, 123)])
     digits = "".join([str(n) for n in range(0, 10)])
-    special = "!@#$%^&*()_-+={[}]|<>?/"
+    special = "!@#$%&*^|()_+"
 
     all_chars = letters
     if use_uppercase:
@@ -83,4 +83,3 @@ if __name__ == "__main__":
             page = 1
         else:
             pass
-    print(generate_pw(18, True, True, False))
