@@ -1,10 +1,34 @@
 import os
 import uuid
 
-FILE_PATH = "tasks.txt"
-
 
 class Page(object):
+    FILE_PATH = "tasks.txt"
+
+    @classmethod
+    def save_tasks(cls, tasks: dict) -> None:
+        with open(cls.FILE_PATH, "w") as f:
+            list_tasks = []
+            for t_id, t_values in tasks.items():
+                list_tasks.append(f"{t_id} | {t_values[0]} | {t_values[1]}")
+            f.write("\n".join(list_tasks) + "\n")
+
+    @classmethod
+    def read_tasks(cls) -> dict:
+        tasks = dict()
+        if os.path.exists(cls.FILE_PATH):
+            with open(cls.FILE_PATH, "r") as f:
+                for line in f.read().split("\n"):
+                    if line:
+                        task = line.split(" | ")
+                        tasks[task[0]] = task[1:]
+        return tasks
+
+    @classmethod
+    def print_tasks(cls, tasks: dict):
+        for t_id, t_values in tasks.items():
+            print(f"{t_id} | {t_values[0]} | {t_values[1]}")
+
     @classmethod
     def show(cls) -> None:
         pass
@@ -21,7 +45,7 @@ class MainMenu(Page):
         print("[1] Show tasks")
         print("[2] Add task")
         print("[3] Complete task")
-        print("[4] Exit")
+        print("[4] Exit\n")
 
     @classmethod
     def choice(cls) -> int:
@@ -40,23 +64,18 @@ class ShowTasks(Page):
 
     @classmethod
     def show(cls) -> None:
-        print("")
-        print("[YOUR TASKS]")
-        if os.path.exists(FILE_PATH):
-            with open(FILE_PATH, "r") as f:
-                for task in f.readlines():
-                    if task != "":
-                        print(task)
+        print("\n[YOUR TASKS]")
+        tasks = cls.read_tasks()
+        if tasks:
+            cls.print_tasks(tasks)
         else:
-            print("Empty list")
-        print("")
+            print("Empty list\n")
 
 
 class AddTask(Page):
 
     @classmethod
     def show(cls) -> None:
-        print("")
         print("[ADD TASK]")
 
     @classmethod
@@ -69,16 +88,9 @@ class AddTask(Page):
             if t_deadline not in accepted_dl:
                 raise ValueError(f"{t_deadline} not in {accepted_dl}")
 
-            tasks = []
-            if os.path.exists(FILE_PATH):
-                tasks: list
-                with open(FILE_PATH, "r") as f:
-                    tasks = f.readlines()
-
-            tasks.append(f"{t_id} | {t_name} | {t_deadline}")
-
-            with open(FILE_PATH, "w") as f:
-                f.write("\n".join(tasks) + "\n")
+            tasks = cls.read_tasks()
+            tasks[t_id] = [t_name, t_deadline]
+            cls.save_tasks(tasks)
 
         except Exception as e:
             print(e)
@@ -91,21 +103,11 @@ class CompleteTask(ShowTasks):
     @classmethod
     def choice(cls) -> int:
         try:
-            t_id = input("Enter id to complete")
-            tasks = []
-            if os.path.exists(FILE_PATH):
-                tasks: list
-                with open(FILE_PATH, "r") as f:
-                    for line in f.readlines():
-                        task = tuple(line.split(" | "))
-                        if t_id != tasks[0]:
-                            tasks.append(task)
-                        else:
-                            raise ValueError(f"Unknown ID: {t_id}")
+            tasks = cls.read_tasks()
             if tasks:
-                with open(FILE_PATH, "w") as f:
-                    f.write("\n".join(tasks) + "\n")
-
+                t_id = input("Enter id to complete")
+                del tasks[t_id]
+                cls.save_tasks(tasks)
         except Exception as e:
             print(e)
             return 0
